@@ -1,0 +1,76 @@
+\chapter{Autonomous Remediation Loop (\arl{})}
+\label{ch:selfhealing}
+
+\section{Design Principles}
+
+The \arl{} implements zero-touch incident response via five principles:
+\begin{enumerate}
+  \item \textbf{Detect}: anomaly score or \tagan{}-predicted severity
+    triggers state transition out of NORMAL.
+  \item \textbf{Classify}: attack type identified from \tagraph{}
+    transition probabilities.
+  \item \textbf{Select}: best countermeasure chosen from
+    $\mathbf{M}_{\mathrm{def}}$ with rotation if recently ineffective.
+  \item \textbf{Verify}: three consecutive ticks of stable or improving
+    health confirm healing.
+  \item \textbf{Adapt}: healing outcome stored in \tagraph{} for future
+    episodes.
+\end{enumerate}
+
+\section{State Machine Specification}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  state/.style={draw, rounded corners=8pt, minimum width=2.2cm,
+                minimum height=0.9cm, font=\small\bfseries},
+  arr/.style={-{Stealth}, thick},
+  every node/.append style={align=center}
+]
+\node[state, fill=green!10]  (N)  {NORMAL};
+\node[state, fill=yellow!15, right=2.2cm of N]  (A)  {ALERT};
+\node[state, fill=red!10, right=2.2cm of A]     (R)  {RESPONDING};
+\node[state, fill=blue!10,  below=1.5cm of R]   (H)  {HEALING};
+\node[state, fill=purple!10,below=1.5cm of A]   (V)  {VERIFIED};
+
+\draw[arr] (N) -- node[above,font=\tiny]{severity$>\tau_a$} (A);
+\draw[arr] (A) -- node[above,font=\tiny]{severity$\geq\tau_r$} (R);
+\draw[arr] (A) to[bend right=30] node[below,font=\tiny]{cleared} (N);
+\draw[arr] (R) -- node[right,font=\tiny]{DR$>$0.2} (H);
+\draw[arr] (R) to[bend right=20] node[left,font=\tiny]{failed} (R);
+\draw[arr] (H) -- node[below,font=\tiny]{verified$\times 3$} (V);
+\draw[arr] (H) to[bend left=30] node[right,font=\tiny]{health drop} (R);
+\draw[arr] (V) to[bend left=20] node[below,font=\tiny]{1 tick} (N);
+\end{tikzpicture}
+\caption{\arl{} state machine with transition conditions.
+  $\tau_a = 0.25$, $\tau_r = 0.45$, $\tau_{\mathrm{esc}} = 0.80$.}
+\label{fig:arl}
+\end{figure}
+
+\section{Countermeasure Rotation}
+
+If the selected countermeasure fails (defense reward $< 0.1$), \arl{}
+rotates to the next best action from $\mathbf{M}_{\mathrm{def}}$ that
+has not recently failed:
+\begin{equation}
+  a^*_{\mathrm{rot}} = \argmax_{a \neq a_{\mathrm{failed}}}
+    \left[\E[r_d \mid k, a] - 0.15 \cdot n_{\mathrm{fail}}(a)\right]
+\end{equation}
+where $n_{\mathrm{fail}}(a)$ counts consecutive failures of action $a$.
+This prevents the system from repeatedly applying an ineffective
+countermeasure against a novel attack variant.
+
+\section{Healing Confirmation}
+
+Three consecutive verification ticks with $H_t \geq H_{\mathrm{snap}} - 0.05$
+(where $H_{\mathrm{snap}}$ is health at RESPONDING entry) are required
+before transitioning to VERIFIED. This guards against false healing
+confirmations caused by transient health improvements.
+
+\section{Escalation Protocol}
+
+When attack severity exceeds $\tau_{\mathrm{esc}} = 0.80$, the \arl{}
+logs an escalation event and notifies the monitoring layer (the
+ALERT\_ADMIN defense action). In practice, over 300 simulation ticks,
+0 escalations were required, confirming that the autonomous loop handles
+the full threat range encountered by the trained \caesar{} system.

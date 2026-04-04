@@ -1,0 +1,116 @@
+%% ── Chapter 4: CAESAR Framework ─────────────────────────────
+\chapter{The \caesar{} Framework}
+\label{ch:framework}
+
+\section{Overview}
+
+\caesar{} comprises four interacting components arranged in a closed
+co-evolutionary loop (\cref{fig:architecture}):
+
+\begin{enumerate}
+  \item \textbf{CyberEnvironment} $\mathcal{E}$: a parameterised network
+    simulation supporting 8 attack types, 10 configurable nodes, and 8
+    defense action classes.
+  \item \textbf{\tagan{}}: defense-conditioned generative attacker.
+  \item \textbf{\adpn{}}: Dueling Double-DQN adaptive defender.
+  \item \textbf{\tagraph{}}: temporal knowledge graph for proactive defense.
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.8cm and 2.5cm,
+    box/.style={draw, rounded corners=6pt, minimum width=2.8cm,
+                minimum height=1cm, align=center, font=\small\bfseries},
+    atk/.style={box, fill=red!10,   draw=red!60},
+    def/.style={box, fill=blue!10,  draw=blue!60},
+    env/.style={box, fill=gray!10,  draw=gray!60},
+    tag/.style={box, fill=green!10, draw=green!60},
+    arr/.style={-{Stealth[length=6pt]}, thick},
+  ]
+  \node[env]                    (env)  {CyberEnvironment\\$\mathcal{E}$};
+  \node[atk, above left=of env] (gan)  {\tagan{}\\(Attacker)};
+  \node[def, above right=of env](adpn) {\adpn{}\\(Defender)};
+  \node[tag, below=of env]      (tag)  {\tagraph{}\\(Graph Memory)};
+
+  \draw[arr, red!70]   (gan)  -- node[above,sloped,font=\tiny]{attack$(k,\iota)$} (env);
+  \draw[arr, blue!70]  (adpn) -- node[above,sloped,font=\tiny]{action $a_t$}      (env);
+  \draw[arr, gray!70]  (env)  -- node[right, font=\tiny]{$r_a, \mathbf{d}_t$}     (tag);
+  \draw[arr, green!70] (tag)  -- node[left,  font=\tiny]{proactive $p_t$}         (adpn);
+  \draw[arr, red!50, dashed] (env) to[bend right=20] node[below,sloped,font=\tiny]{bypass\_reward} (gan);
+  \draw[arr, gray!50] (env) to[bend left=30] node[above,sloped,font=\tiny]{$\mathbf{d}_t$} (gan);
+  \end{tikzpicture}
+  \caption{\caesar{} architecture: closed co-evolutionary loop connecting
+    the TA-GAN attacker, ADPN defender, and TAG knowledge graph through
+    the simulated CyberEnvironment.}
+  \label{fig:architecture}
+\end{figure}
+
+\section{The CAESAR Algorithm}
+
+\begin{algorithm}[htbp]
+\caption{\caesar{} Co-evolutionary Training Loop}
+\label{alg:caesar}
+\begin{algorithmic}[1]
+\Require Environment $\mathcal{E}$, defender policy $\pi_\theta$ (\adpn),
+         generator $G_\phi$, discriminator $D_\psi$ (\tagan),
+         empty graph $\mathcal{G}$ (\tagraph)
+\For{each episode $e = 1 \ldots N_{\mathrm{ep}}$}
+  \State $s_1 \leftarrow \mathcal{E}.\mathrm{reset}()$
+  \For{each step $t = 1 \ldots T$}
+    \State $\mathbf{d}_t \leftarrow \mathcal{E}.\mathrm{defenseEmbedding}()$
+           \Comment{8-dim defense state}
+    \State $(k_t, \iota_t) \leftarrow G_\phi(z_t \sim \mathcal{N}(0,I),\; \mathbf{d}_t)$
+           \Comment{TA-GAN: conditioned attack}
+    \State $r_a^t \leftarrow \mathcal{E}.\mathrm{injectAttack}(k_t, \iota_t)$
+    \State $p_t \leftarrow \mathcal{G}.\mathrm{proactiveDefense}(\text{history})$
+           \Comment{TAG prediction}
+    \State $a_t \leftarrow \pi_\theta(s_t,\; \mathrm{proactive}{=}p_t)$
+           \Comment{ADPN action}
+    \State $r_d^t \leftarrow \mathcal{E}.\mathrm{applyDefense}(a_t)$
+    \State $s_{t+1} \leftarrow \mathcal{E}.\mathrm{getState}()$
+    \State $\mathcal{G}.\mathrm{addEvent}(k_t, a_t, r_a^t, r_d^t, t)$
+    \State \textbf{update} $\pi_\theta$ via Double-DQN on $(s_t,a_t,r_d^t,s_{t+1})$
+    \State \textbf{update} $G_\phi, D_\psi$ via adversarial training on $(\mathbf{x}_t, \mathbf{d}_t)$
+    \State $G_\phi \leftarrow$ \textsc{UpdateBypassReward}$(r_a^t)$
+  \EndFor
+  \State $\Fatt^e \leftarrow \bar r_a \cdot (1 - 0.3\,\bar r_d)$
+         \Comment{attacker fitness}
+  \State $\Fdef^e \leftarrow \bar r_d \cdot (1 - 0.3\,\bar r_a) + 0.2\,H$
+         \Comment{defender fitness}
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\section{State and Action Spaces}
+
+\subsection{State Space}
+The environment state $\mathbf{s}_t \in \R^{16}$ encodes:
+packet rate (normalised), anomaly score, attack type (integer), attack
+intensity, number of active defenses, fraction of compromised nodes,
+detection confidence, false positive rate, latency, and a one-hot encoding
+of the current attack type.
+
+\subsection{Attack Space}
+Eight attack types $\mathcal{K} = \{0,\ldots,7\}$ spanning
+normal traffic, DoS, DDoS, port scan, brute force, data exfiltration,
+man-in-the-middle, and ransomware.
+Each attack is parameterised by intensity $\iota \in [0,1]$.
+
+\subsection{Defense Space}
+Eight discrete actions $\mathcal{A} = \{0,\ldots,7\}$:
+no action, IP blocking, rate limiting, node isolation, honeypot
+deployment, admin alert, vulnerability patching, and connection reset.
+
+\section{Co-evolutionary Fitness Metrics}
+
+The attacker and defender fitness scores at episode $e$ are:
+\begin{align}
+  \Fatt^e &= \bar r_a^e \cdot (1 - 0.3\,\bar r_d^e) \label{eq:f_att}\\
+  \Fdef^e &= \bar r_d^e \cdot (1 - 0.3\,\bar r_a^e) + 0.2\,H^e \label{eq:f_def}
+\end{align}
+where $\bar r_a^e$, $\bar r_d^e$ are mean attack success and defense reward,
+and $H^e$ is end-of-episode network health.
+The \emph{co-evolutionary gap} $\Delta^e = \Fdef^e - \Fatt^e$ measures
+which side is currently winning; sustained $\Delta^e > 0$ indicates
+defender dominance.

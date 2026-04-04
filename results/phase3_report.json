@@ -1,0 +1,48 @@
+{
+  "phase": 3,
+  "mgae": {
+    "feat_dim": 52,
+    "T": 40,
+    "final_loss": 0.9907080395824795,
+    "mean_evasion_prob": 0.3335021151121084,
+    "mean_manifold": 0.0006532419752329588,
+    "mean_l2": 6.12997743844986
+  },
+  "robustness": {
+    "Random Forest IDS": {
+      "dr_clean": 0.985,
+      "dr_fgsm": 0.0,
+      "dr_pgd": 0.0,
+      "dr_mgae": 0.0
+    },
+    "Decision Tree IDS": {
+      "dr_clean": 0.995,
+      "dr_fgsm": 0.0,
+      "dr_pgd": 0.0,
+      "dr_mgae": 0.0
+    },
+    "Threshold IDS (Rule-based)": {
+      "dr_clean": 0.73,
+      "dr_fgsm": 0.73,
+      "dr_pgd": 0.73,
+      "dr_mgae": 0.73
+    }
+  },
+  "self_healing": {
+    "total_ticks": 300,
+    "healing_events": 1,
+    "mean_health": 0.8276067670972428,
+    "pct_normal": 0.7266666666666667,
+    "pct_responding": 0.01,
+    "pct_healing": 0.01,
+    "successful_heals": 1,
+    "avg_time_to_heal_ms": 30.0
+  },
+  "figures": [
+    "results/robustness_evaluation.png",
+    "results/mgae_diffusion.png",
+    "results/self_healing_timeline.png",
+    "results/mgae_sensitivity.png",
+    "results/self_healing_summary.png"
+  ]
+}

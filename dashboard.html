@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAESAR — AI Cyber Defense Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg:       #080c14;
+    --panel:    #0d1421;
+    --panel2:   #111827;
+    --border:   #1e2d45;
+    --accent:   #00d4ff;
+    --accent2:  #7c3aed;
+    --atk:      #ef4444;
+    --def:      #22c55e;
+    --warn:     #f59e0b;
+    --txt:      #e2e8f0;
+    --txt2:     #94a3b8;
+    --glow:     rgba(0,212,255,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--txt);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Animated background grid ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .wrapper { position: relative; z-index: 1; padding: 16px; max-width: 1600px; margin: 0 auto; }
+
+  /* ── Header ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; margin-bottom: 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(0,212,255,0.05);
+  }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; box-shadow: 0 0 20px rgba(0,212,255,0.3);
+  }
+  .logo h1 { font-size: 20px; font-weight: 700; letter-spacing: 2px; }
+  .logo p  { font-size: 11px; color: var(--txt2); letter-spacing: 1px; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  #sim-status {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+  .pulse {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--def);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .pulse.stopped { background: var(--atk); animation: none; }
+  @keyframes pulse {
+    0%,100% { opacity: 1; box-shadow: 0 0 4px var(--def); }
+    50%      { opacity: .6; box-shadow: 0 0 12px var(--def); }
+  }
+  .btn {
+    padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+    letter-spacing: 1px;
+  }
+  .btn-start { background: linear-gradient(135deg, #065f46, #047857); color: #6ee7b7; border-color: #047857; }
+  .btn-stop  { background: linear-gradient(135deg, #7f1d1d, #991b1b); color: #fca5a5; border-color: #991b1b; }
+  .btn-reset { background: var(--panel2); color: var(--txt2); }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+  /* ── KPI row ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; position: relative; overflow: hidden;
+    transition: border-color .3s;
+  }
+  .kpi::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .kpi-label { font-size: 10px; letter-spacing: 1.5px; color: var(--txt2); text-transform: uppercase; margin-bottom: 6px; }
+  .kpi-value { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; }
+  .kpi-sub   { font-size: 10px; color: var(--txt2); margin-top: 4px; }
+  .kpi.danger  .kpi-value { color: var(--atk); }
+  .kpi.safe    .kpi-value { color: var(--def); }
+  .kpi.warn    .kpi-value { color: var(--warn); }
+  .kpi.accent  .kpi-value { color: var(--accent); }
+  .kpi.accent2 .kpi-value { color: #a78bfa; }
+
+  /* ── Main grid ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 340px;
+    grid-template-rows: auto auto;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; position: relative;
+  }
+  .panel-title {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--txt2); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title::before {
+    content: ''; width: 3px; height: 14px; border-radius: 2px;
+    background: linear-gradient(var(--accent), var(--accent2));
+  }
+
+  /* ── Chart canvases ── */
+  canvas { width: 100% !important; }
+
+  /* ── Network viz ── */
+  #network-canvas {
+    width: 100%; height: 220px; border-radius: 8px;
+    background: var(--panel2); border: 1px solid var(--border);
+  }
+
+  /* ── Attack log ── */
+  .log-container {
+    height: 230px; overflow-y: auto; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; line-height: 1.7;
+  }
+  .log-container::-webkit-scrollbar { width: 4px; }
+  .log-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .log-entry { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .log-t  { color: var(--txt2); }
+  .log-atk { color: var(--atk); }
+  .log-def { color: var(--def); }
+  .log-warn{ color: var(--warn); }
+  .log-info{ color: var(--accent); }
+
+  /* ── State machine ── */
+  .state-machine { display: flex; flex-direction: column; gap: 8px; }
+  .state-row { display: flex; align-items: center; gap: 10px; }
+  .state-dot {
+    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    transition: all .3s;
+  }
+  .state-name { font-size: 12px; font-weight: 600; flex: 1; }
+  .state-bar-wrap { flex: 2; height: 6px; background: var(--panel2); border-radius: 3px; }
+  .state-bar { height: 100%; border-radius: 3px; transition: width .5s ease; }
+  .state-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--txt2); width: 28px; text-align: right; }
+
+  /* ── Bottom row ── */
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  /* ── Attack type badges ── */
+  .attack-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .atk-badge {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 8px; text-align: center;
+    transition: all .3s;
+  }
+  .atk-badge.active { border-color: var(--atk); background: rgba(239,68,68,0.08); }
+  .atk-badge-name { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--txt2); }
+  .atk-badge-count { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; margin-top: 4px; }
+
+  /* ── Defense grid ── */
+  .def-grid { display: flex; flex-direction: column; gap: 6px; }
+  .def-row { display: flex; align-items: center; gap: 8px; }
+  .def-name { font-size: 10px; color: var(--txt2); width: 110px; flex-shrink: 0; }
+  .def-bar-wrap { flex: 1; height: 8px; background: var(--panel2); border-radius: 4px; }
+  .def-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--def), var(--accent)); transition: width .4s; }
+  .def-count { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--txt2); width: 28px; text-align: right; }
+
+  /* ── Threat level indicator ── */
+  .threat-ring {
+    width: 130px; height: 130px; margin: 10px auto;
+    position: relative; display: flex; align-items: center; justify-content: center;
+  }
+  .threat-ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+  .threat-center { text-align: center; z-index: 1; }
+  .threat-level-txt { font-size: 10px; letter-spacing: 2px; color: var(--txt2); }
+  .threat-pct { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; }
+
+  /* ── Responsive ── */
+  @media (max-width: 1100px) {
+    .main-grid { grid-template-columns: 1fr 1fr; }
+    .kpi-row   { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 720px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .kpi-row   { grid-template-columns: repeat(2, 1fr); }
+    .bottom-row{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🛡</div>
+    <div>
+      <h1>CAESAR</h1>
+      <p>CO-EVOLUTIONARY ADVERSARIAL SIMULATION ENGINE · PhD RESEARCH v1.0</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div id="sim-status"><div class="pulse stopped" id="pulse-dot"></div><span id="status-txt">STOPPED</span></div>
+    <button class="btn btn-start" id="btn-start" onclick="startSim()">▶ START</button>
+    <button class="btn btn-stop"  id="btn-stop"  onclick="stopSim()" style="display:none">■ STOP</button>
+    <button class="btn btn-reset"              onclick="resetSim()">↺ RESET</button>
+  </div>
+</header>
+
+<!-- KPIs -->
+<div class="kpi-row">
+  <div class="kpi safe">
+    <div class="kpi-label">Network Health</div>
+    <div class="kpi-value" id="kpi-health">1.00</div>
+    <div class="kpi-sub">↑ system integrity</div>
+  </div>
+  <div class="kpi accent">
+    <div class="kpi-label">Defense Reward</div>
+    <div class="kpi-value" id="kpi-dr">0.00</div>
+    <div class="kpi-sub">avg per step</div>
+  </div>
+  <div class="kpi danger">
+    <div class="kpi-label">Attack Success</div>
+    <div class="kpi-value" id="kpi-as">0.00</div>
+    <div class="kpi-sub">avg per step</div>
+  </div>
+  <div class="kpi warn">
+    <div class="kpi-label">Detection Conf</div>
+    <div class="kpi-value" id="kpi-det">0.00</div>
+    <div class="kpi-sub">current confidence</div>
+  </div>
+  <div class="kpi accent2">
+    <div class="kpi-label">Proactive Def</div>
+    <div class="kpi-value" id="kpi-pro">0</div>
+    <div class="kpi-sub">TAG-guided blocks</div>
+  </div>
+  <div class="kpi safe">
+    <div class="kpi-label">Neutralized</div>
+    <div class="kpi-value" id="kpi-neut">0%</div>
+    <div class="kpi-sub">attacks stopped</div>
+  </div>
+</div>
+
+<!-- Main Grid -->
+<div class="main-grid">
+
+  <!-- Chart 1: Defense Reward + Attack Success -->
+  <div class="panel">
+    <div class="panel-title">Co-evolutionary Fitness</div>
+    <canvas id="chart-fitness" height="180"></canvas>
+  </div>
+
+  <!-- Chart 2: Network health -->
+  <div class="panel">
+    <div class="panel-title">Network Health &amp; Threat Level</div>
+    <canvas id="chart-health" height="180"></canvas>
+  </div>
+
+  <!-- State machine + Threat ring -->
+  <div class="panel">
+    <div class="panel-title">System State Machine</div>
+    <div style="display:flex; gap:16px; align-items:center; margin-bottom:14px;">
+      <div class="threat-ring">
+        <svg width="130" height="130">
+          <circle cx="65" cy="65" r="54" fill="none" stroke="#1e2d45" stroke-width="10"/>
+          <circle cx="65" cy="65" r="54" fill="none" stroke="url(#threatGrad)"
+                  stroke-width="10" stroke-linecap="round"
+                  stroke-dasharray="339.3" id="threat-circle"
+                  stroke-dashoffset="339.3"/>
+          <defs>
+            <linearGradient id="threatGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#22c55e"/>
+              <stop offset="60%"  stop-color="#f59e0b"/>
+              <stop offset="100%" stop-color="#ef4444"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="threat-center">
+          <div class="threat-pct" id="threat-pct">0%</div>
+          <div class="threat-level-txt">THREAT</div>
+        </div>
+      </div>
+      <div class="state-machine" style="flex:1">
+        <div class="state-row">
+          <div class="state-dot" id="sd-normal" style="background:#22c55e"></div>
+          <div class="state-name">NORMAL</div>
+          <div class="state-bar-wrap"><div class="state-bar" id="sb-normal" style="width:100%;background:#22c55e"></div></div>
+          <div class="state-count" id="sc-normal">0</div>
+        </div>
+        <div class="state-row">
+          <div class="state-dot" id="sd-alert"  style="background:#f59e0b"></div>
+          <div class="state-name">ALERT</div>
+          <div class="state-bar-wrap"><div class="state-bar" id="sb-alert"  style="width:0%;background:#f59e0b"></div></div>
+          <div class="state-count" id="sc-alert">0</div>
+        </div>
+        <div class="state-row">
+          <div class="state-dot" id="sd-respond" style="background:#ef4444"></div>
+          <div class="state-name">RESPONDING</div>
+          <div class="state-bar-wrap"><div class="state-bar" id="sb-respond" style="width:0%;background:#ef4444"></div></div>
+          <div class="state-count" id="sc-respond">0</div>
+        </div>
+        <div class="state-row">
+          <div class="state-dot" id="sd-heal"   style="background:#00d4ff"></div>
+          <div class="state-name">HEALING</div>
+          <div class="state-bar-wrap"><div class="state-bar" id="sb-heal"   style="width:0%;background:#00d4ff"></div></div>
+          <div class="state-count" id="sc-heal">0</div>
+        </div>
+        <div class="state-row">
+          <div class="state-dot" id="sd-verify" style="background:#7c3aed"></div>
+          <div class="state-name">VERIFIED</div>
+          <div class="state-bar-wrap"><div class="state-bar" id="sb-verify" style="width:0%;background:#a78bfa"></div></div>
+          <div class="state-count" id="sc-verify">0</div>
+        </div>
+      </div>
+    </div>
+    <!-- Network node grid -->
+    <div class="panel-title" style="margin-top:8px">Network Topology</div>
+    <canvas id="network-canvas"></canvas>
+  </div>
+
+</div>
+
+<!-- Bottom Row -->
+<div class="bottom-row">
+
+  <!-- Attack types -->
+  <div class="panel">
+    <div class="panel-title">Attack Distribution</div>
+    <div class="attack-grid" id="atk-grid">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- Defense actions -->
+  <div class="panel">
+    <div class="panel-title">Defense Action Frequency</div>
+    <div class="def-grid" id="def-grid"><!-- filled by JS --></div>
+  </div>
+
+  <!-- Event log -->
+  <div class="panel">
+    <div class="panel-title">Event Log</div>
+    <div class="log-container" id="event-log"></div>
+  </div>
+
+</div>
+</div><!-- /wrapper -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// Simulation Engine (pure JS — no external deps)
+// ═══════════════════════════════════════════════════════════════
+
+const ATK_NAMES = ['NORMAL','DOS','DDOS','PORT_SCAN','BRUTE_FORCE','DATA_EXFIL','MITM','RANSOMWARE'];
+const DEF_NAMES = ['NO_ACTION','BLOCK_IP','RATE_LIMIT','ISOLATE_NODE','DEPLOY_HONEYPOT','ALERT_ADMIN','PATCH_VULN','RESET_CONN'];
+const OPTIMAL_DEF = {0:0,1:2,2:2,3:4,4:1,5:3,6:3,7:3};
+
+const ATK_COLORS = ['#4ade80','#ef4444','#dc2626','#f59e0b','#fb923c','#a78bfa','#38bdf8','#f43f5e'];
+const DEF_COLORS = ['#64748b','#22c55e','#00d4ff','#7c3aed','#f59e0b','#94a3b8','#34d399','#60a5fa'];
+
+// ── State ───────────────────────────────────────────────────────
+let state = {
+  running: false, tick: 0, epsilon: 1.0,
+  health: 1.0, defReward: 0, atkSuccess: 0, detConf: 0, proactive: 0,
+  totalNeut: 0, totalAtk: 0,
+  atkCounts: new Array(8).fill(0),
+  defCounts: new Array(8).fill(0),
+  stateCounts: new Array(5).fill(0),
+  sysState: 0,   // 0=NORMAL,1=ALERT,2=RESPONDING,3=HEALING,4=VERIFIED
+  nodes: [],
+  drHistory:   [], asHistory:   [], healthHistory: [],
+  curAtk: 0, curIntensity: 0, curDef: 0,
+  bypassReward: 0.0,
+  tagHistory: [],  // recent attack types
+  atkDefMatrix: {},
+  healingEvents: 0,
+  verifyCount: 0,
+  alertCount: 0,
+};
+
+// Node types: 0=host,1=server,2=router,3=firewall
+function initNodes() {
+  const types = [0,0,0,0,0,1,1,2,2,3];
+  state.nodes = types.map((t,i) => ({
+    id: i, type: t, compromised: false,
+    vuln: 0.3 + Math.random()*0.5,
+    x: 0, y: 0, // set in draw
+  }));
+}
+
+// ── Core simulation step ─────────────────────────────────────────
+function simStep() {
+  const s = state;
+  s.tick++;
+  s.epsilon = Math.max(0.05, s.epsilon * 0.997);
+
+  // TA-GAN: generate defense-conditioned attack
+  const defStr = s.defCounts.reduce((a,b)=>a+b,0);
+  const bypassFactor = 1 - Math.min(0.5, defStr * 0.06);
+  let atkType, intensity;
+  if (Math.random() < s.epsilon) {
+    atkType   = Math.floor(Math.random() * 8);
+    intensity = 0.1 + Math.random() * 0.85;
+  } else {
+    // TAG prediction: use most common recent attack + transition
+    const recent = s.tagHistory.slice(-3);
+    if (recent.length > 0 && Math.random() < 0.6) {
+      const last = recent[recent.length-1];
+      const transitions = [1,2,3,4,5,6,7,0]; // simple cyclic sequence
+      atkType = transitions[last % transitions.length];
+    } else {
+      atkType = s.atkCounts.indexOf(Math.max(...s.atkCounts));
+    }
+    intensity = 0.3 + Math.random() * 0.6;
+  }
+
+  s.curAtk = atkType; s.curIntensity = intensity;
+  s.atkCounts[atkType]++;
+  s.tagHistory.push(atkType);
+  if (s.tagHistory.length > 10) s.tagHistory.shift();
+
+  // Attack success
+  const avgVuln = s.nodes.reduce((a,n)=>a+n.vuln,0)/s.nodes.length;
+  const activeDefenseBlock = (s.defCounts[1]+s.defCounts[2]+s.defCounts[3])*0.07;
+  let atkSuc = 0;
+  if (atkType > 0) {
+    const mults = [0,.9,1.1,.3,.65,.70,.55,1.35];
+    atkSuc = Math.min(1, Math.max(0, intensity * avgVuln * mults[atkType] * bypassFactor - activeDefenseBlock));
+  }
+  s.totalAtk++;
+  if (atkSuc < 0.10) s.totalNeut++;
+  s.atkSuccess = atkSuc;
+  s.bypassReward = s.bypassReward * 0.9 + atkSuc * 0.1;
+
+  // Compromise nodes
+  const nComp = Math.floor(atkSuc * s.nodes.length);
+  s.nodes.forEach((n,i)=>{ n.compromised = i < nComp; });
+
+  // ADPN: select defense (TAG-aware)
+  let defAction, proact = false;
+  // Proactive: if recent attacks predictable, preempt
+  if (s.tagHistory.length >= 3 && Math.random() < 0.35) {
+    const predicted = s.tagHistory[s.tagHistory.length-1];
+    const bestDef   = OPTIMAL_DEF[predicted] || 0;
+    const key = `${predicted}-${bestDef}`;
+    const hist = s.atkDefMatrix[key] || [];
+    if (hist.length > 2 && hist.reduce((a,b)=>a+b,0)/hist.length > 0.25) {
+      defAction = bestDef; proact = true; s.proactive++;
+    }
+  }
+  if (!proact) {
+    defAction = Math.random() < s.epsilon
+      ? Math.floor(Math.random()*8)
+      : (OPTIMAL_DEF[atkType] || 0);
+  }
+  s.curDef = defAction;
+  s.defCounts[defAction]++;
+
+  // Defense reward
+  const defRewMap = {
+    0: -atkSuc*1.3,
+    1: atkType===1||atkType===2||atkType===4 ? 0.85*intensity : 0.05,
+    2: atkType===1||atkType===2 ? 0.70*intensity : 0.05,
+    3: atkType===5||atkType===6||atkType===7 ? 0.90*intensity : 0.15,
+    4: atkType===3||atkType===4 ? 0.65*intensity : 0.10,
+    5: 0.15,
+    6: 0.50,
+    7: atkType===2||atkType===6 ? 0.55*intensity : 0.10,
+  };
+  const dr = defRewMap[defAction] || 0;
+  s.defReward = s.defReward * 0.92 + dr * 0.08;
+
+  // TAG update
+  const key = `${atkType}-${defAction}`;
+  if (!s.atkDefMatrix[key]) s.atkDefMatrix[key] = [];
+  s.atkDefMatrix[key].push(dr);
+  if (s.atkDefMatrix[key].length > 20) s.atkDefMatrix[key].shift();
+
+  // Detection confidence
+  s.detConf = Math.min(1, atkSuc * 0.7 + s.defCounts.filter((_,i)=>i>0).reduce((a,b)=>a+b,0)*0.005);
+
+  // Network health
+  const comp = nComp/s.nodes.length;
+  s.health = Math.max(0, 1 - 0.45*comp - 0.3*avgVuln - 0.25*Math.min(1, s.tick>0?atkSuc*0.5:0));
+
+  // Patch vulnerabilities
+  if (defAction === 6) {
+    s.nodes.forEach(n=>{ n.vuln = Math.max(0.05, n.vuln - 0.08); });
+  }
+
+  // Self-healing state machine
+  const severity = [0,.6,.9,.3,.5,.7,.8,1.0][atkType]*atkSuc;
+  updateStateM(severity, s.health, dr);
+
+  // History
+  s.drHistory.push(s.defReward);
+  s.asHistory.push(atkSuc);
+  s.healthHistory.push(s.health);
+  const maxH = 120;
+  if (s.drHistory.length > maxH) { s.drHistory.shift(); s.asHistory.shift(); s.healthHistory.shift(); }
+}
+
+const STATE_THRESH = {ALERT:.25, RESPOND:.45, ESCALATE:.80};
+function updateStateM(severity, health, dr) {
+  const s = state;
+  switch(s.sysState) {
+    case 0: // NORMAL
+      if (severity > STATE_THRESH.ALERT) { s.sysState=1; s.alertCount=0; }
+      break;
+    case 1: // ALERT
+      s.alertCount++;
+      if (severity >= STATE_THRESH.RESPOND) { s.sysState=2; }
+      else if (s.alertCount > 3 && severity < 0.1) { s.sysState=0; }
+      break;
+    case 2: // RESPONDING
+      if (dr > 0.2) { s.sysState=3; s.verifyCount=0; }
+      else if (dr < 0) { /* stay */ }
+      break;
+    case 3: // HEALING
+      s.verifyCount++;
+      if (s.verifyCount >= 2) { s.sysState=4; s.healingEvents++; }
+      else if (health < 0.3) { s.sysState=2; }
+      break;
+    case 4: // VERIFIED
+      s.sysState=0;
+      break;
+  }
+  s.stateCounts[s.sysState]++;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Rendering
+// ═══════════════════════════════════════════════════════════════
+
+// Chart helper
+function drawLineChart(canvas, datasets, opts={}) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle = '#111827'; ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='rgba(30,45,69,0.8)'; ctx.lineWidth=1;
+  for(let y=0;y<=4;y++){
+    const yp = H*0.05 + (H*0.9/4)*y;
+    ctx.beginPath(); ctx.moveTo(0,yp); ctx.lineTo(W,yp); ctx.stroke();
+  }
+
+  const padL=8, padR=8, padT=10, padB=10;
+  const cW=W-padL-padR, cH=H-padT-padB;
+
+  for(const {data, color, fill, lineWidth=2} of datasets) {
+    if(data.length<2) continue;
+    const minV = opts.min??0, maxV = opts.max??1;
+    const pts = data.map((v,i)=>[
+      padL + (i/(data.length-1))*cW,
+      padT + (1-(v-minV)/(maxV-minV+1e-9))*cH
+    ]);
+
+    if(fill) {
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], padT+cH);
+      pts.forEach(p=>ctx.lineTo(...p));
+      ctx.lineTo(pts[pts.length-1][0], padT+cH);
+      ctx.closePath();
+      ctx.fillStyle = fill; ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.strokeStyle=color; ctx.lineWidth=lineWidth; ctx.lineJoin='round';
+    pts.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));
+    ctx.stroke();
+  }
+}
+
+function renderCharts() {
+  const s = state;
+  const fitness = document.getElementById('chart-fitness');
+  const health  = document.getElementById('chart-health');
+
+  fitness.width  = fitness.offsetWidth || 400;
+  fitness.height = 180;
+  health.width   = health.offsetWidth  || 400;
+  health.height  = 180;
+
+  drawLineChart(fitness, [
+    {data: s.drHistory, color:'#22c55e', fill:'rgba(34,197,94,0.08)', lineWidth:2.5},
+    {data: s.asHistory, color:'#ef4444', fill:'rgba(239,68,68,0.08)', lineWidth:2},
+  ], {min:-1, max:1});
+
+  drawLineChart(health, [
+    {data: s.healthHistory, color:'#00d4ff', fill:'rgba(0,212,255,0.10)', lineWidth:2.5},
+  ], {min:0, max:1});
+}
+
+// Network topology viz
+function renderNetwork() {
+  const canvas = document.getElementById('network-canvas');
+  canvas.width  = canvas.offsetWidth || 320;
+  canvas.height = 220;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#111827'; ctx.fillRect(0,0,W,H);
+
+  const nodes = state.nodes;
+  // Layout in 2 rows
+  const cols=5, rows=2;
+  nodes.forEach((n,i)=>{
+    n.x = (W*0.12) + (i%cols)*(W*0.76/(cols-1));
+    n.y = (H*0.25) + Math.floor(i/cols)*(H*0.50);
+  });
+
+  // Draw edges
+  ctx.strokeStyle='rgba(30,45,69,0.7)'; ctx.lineWidth=1;
+  for(let i=0;i<nodes.length;i++){
+    for(let j=i+1;j<nodes.length;j++){
+      if(Math.random()<0.001 || (Math.abs(i-j)===1)||(Math.abs(i-j)===5)){
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x,nodes[i].y);
+        ctx.lineTo(nodes[j].x,nodes[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Draw nodes
+  const typeColors=['#3b82f6','#8b5cf6','#10b981','#f59e0b'];
+  const typeIcons =['⬡','▣','◈','⬡'];
+  nodes.forEach(n=>{
+    const r = n.type===1?13:n.type===3?15:10;
+    // Glow for compromised
+    if(n.compromised){
+      ctx.shadowBlur=15; ctx.shadowColor='#ef4444';
+    } else {
+      ctx.shadowBlur=0;
+    }
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI*2);
+    ctx.fillStyle = n.compromised ? '#ef444488' : typeColors[n.type]+'88';
+    ctx.fill();
+    ctx.strokeStyle = n.compromised ? '#ef4444' : typeColors[n.type];
+    ctx.lineWidth=2; ctx.stroke();
+    ctx.shadowBlur=0;
+
+    // Vuln bar
+    ctx.fillStyle='rgba(239,68,68,'+n.vuln+')';
+    ctx.fillRect(n.x-r, n.y+r+3, n.vuln*r*2, 3);
+    ctx.strokeStyle='#1e2d45'; ctx.lineWidth=.5;
+    ctx.strokeRect(n.x-r, n.y+r+3, r*2, 3);
+  });
+
+  // Attack indicator
+  if(state.tick>0 && state.curAtk>0){
+    const attacker = {x:10,y:H/2};
+    const target   = nodes[Math.floor(Math.random()*nodes.length)];
+    ctx.strokeStyle=ATK_COLORS[state.curAtk]+'aa';
+    ctx.lineWidth=1.5;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(attacker.x,attacker.y);
+    ctx.lineTo(target.x,target.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle=ATK_COLORS[state.curAtk];
+    ctx.font='bold 11px JetBrains Mono';
+    ctx.fillText(ATK_NAMES[state.curAtk],12,H/2-8);
+  }
+}
+
+// ── DOM updates ──────────────────────────────────────────────────
+function buildStaticUI() {
+  // Attack grid
+  const ag = document.getElementById('atk-grid');
+  ag.innerHTML = ATK_NAMES.map((n,i)=>`
+    <div class="atk-badge" id="atk-${i}">
+      <div class="atk-badge-name">${n.replace('_',' ')}</div>
+      <div class="atk-badge-count" id="atk-cnt-${i}" style="color:${ATK_COLORS[i]}">0</div>
+    </div>`).join('');
+
+  // Defense grid
+  const dg = document.getElementById('def-grid');
+  dg.innerHTML = DEF_NAMES.map((n,i)=>`
+    <div class="def-row">
+      <div class="def-name">${n.replace(/_/g,' ')}</div>
+      <div class="def-bar-wrap"><div class="def-bar" id="def-bar-${i}" style="width:0%;background:${DEF_COLORS[i]}"></div></div>
+      <div class="def-count" id="def-cnt-${i}">0</div>
+    </div>`).join('');
+}
+
+function updateDOM() {
+  const s = state;
+  // KPIs
+  document.getElementById('kpi-health').textContent = s.health.toFixed(2);
+  document.getElementById('kpi-dr').textContent     = s.defReward.toFixed(3);
+  document.getElementById('kpi-as').textContent     = s.atkSuccess.toFixed(3);
+  document.getElementById('kpi-det').textContent    = s.detConf.toFixed(2);
+  document.getElementById('kpi-pro').textContent    = s.proactive;
+  const neutPct = s.totalAtk>0 ? Math.round(100*s.totalNeut/s.totalAtk)+'%' : '0%';
+  document.getElementById('kpi-neut').textContent   = neutPct;
+
+  // Attack counts
+  const maxA = Math.max(1,...s.atkCounts);
+  ATK_NAMES.forEach((_,i)=>{
+    document.getElementById(`atk-cnt-${i}`).textContent = s.atkCounts[i];
+    const el = document.getElementById(`atk-${i}`);
+    el.classList.toggle('active', i===s.curAtk && s.curAtk>0);
+  });
+
+  // Defense bars
+  const maxD = Math.max(1,...s.defCounts);
+  DEF_NAMES.forEach((_,i)=>{
+    document.getElementById(`def-cnt-${i}`).textContent = s.defCounts[i];
+    document.getElementById(`def-bar-${i}`).style.width = (100*s.defCounts[i]/maxD)+'%';
+  });
+
+  // State machine
+  const stateIds=['normal','alert','respond','heal','verify'];
+  const totalTicks = Math.max(1, s.stateCounts.reduce((a,b)=>a+b,0));
+  s.stateCounts.forEach((cnt,i)=>{
+    const name = stateIds[i];
+    const pct  = 100*cnt/totalTicks;
+    const sb   = document.getElementById(`sb-${name}`);
+    const sc   = document.getElementById(`sc-${name}`);
+    if(sb) sb.style.width = pct+'%';
+    if(sc) sc.textContent = cnt;
+  });
+  // Highlight active state dot
+  stateIds.forEach((name,i)=>{
+    const dot = document.getElementById(`sd-${name}`);
+    if(dot) dot.style.boxShadow = i===s.sysState ? '0 0 12px currentColor' : 'none';
+  });
+
+  // Threat ring
+  const threatLevel = Math.min(1, s.atkSuccess*0.7 + (s.sysState/4)*0.3);
+  const circ = document.getElementById('threat-circle');
+  if(circ) {
+    const dash = 339.3;
+    circ.setAttribute('stroke-dashoffset', dash*(1-threatLevel));
+  }
+  document.getElementById('threat-pct').textContent = Math.round(threatLevel*100)+'%';
+  document.getElementById('threat-pct').style.color =
+    threatLevel>0.7 ? '#ef4444' : threatLevel>0.4 ? '#f59e0b' : '#22c55e';
+}
+
+function addLog(html) {
+  const log = document.getElementById('event-log');
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  div.innerHTML = html;
+  log.prepend(div);
+  if (log.children.length > 80) log.lastChild.remove();
+}
+
+function logStep() {
+  const s = state;
+  if(s.tick % 5 !== 0 && s.curAtk === 0) return;
+  const ts   = String(s.tick).padStart(4,'0');
+  const aname = ATK_NAMES[s.curAtk];
+  const dname = DEF_NAMES[s.curDef];
+  const stateNames = ['NORMAL','ALERT','RESPONDING','HEALING','VERIFIED'];
+  const stateColors = ['#22c55e','#f59e0b','#ef4444','#00d4ff','#a78bfa'];
+
+  const atkColor = s.curAtk===0 ? '#4ade80' : '#ef4444';
+  const defColor = s.defReward>0 ? '#22c55e' : '#f59e0b';
+  addLog(`
+    <span class="log-t">[${ts}]</span>
+    <span style="color:${stateColors[s.sysState]}">[${stateNames[s.sysState]}]</span>
+    <span style="color:${atkColor}"> ATK:${aname}</span>
+    <span class="log-t"> I:${s.curIntensity.toFixed(2)}</span>
+    <span style="color:${defColor}"> DEF:${dname}</span>
+    <span class="log-t"> DR:${s.defReward.toFixed(3)} H:${s.health.toFixed(2)}</span>
+  `);
+  if(s.healingEvents > 0 && s.sysState===4){
+    addLog(`<span class="log-def">✓ HEALED — system recovered at tick ${ts}</span>`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Simulation loop
+// ═══════════════════════════════════════════════════════════════
+
+let simInterval = null;
+
+function startSim() {
+  if(state.running) return;
+  state.running = true;
+  document.getElementById('btn-start').style.display='none';
+  document.getElementById('btn-stop').style.display='';
+  document.getElementById('pulse-dot').classList.remove('stopped');
+  document.getElementById('status-txt').textContent='RUNNING';
+
+  addLog(`<span class="log-info">▶ CAESAR simulation started — co-evolutionary training active</span>`);
+
+  simInterval = setInterval(()=>{
+    simStep();
+    logStep();
+    updateDOM();
+    renderCharts();
+    renderNetwork();
+  }, 80);
+}
+
+function stopSim() {
+  state.running=false;
+  clearInterval(simInterval);
+  document.getElementById('btn-start').style.display='';
+  document.getElementById('btn-stop').style.display='none';
+  document.getElementById('pulse-dot').classList.add('stopped');
+  document.getElementById('status-txt').textContent='PAUSED';
+  addLog(`<span class="log-warn">■ Simulation paused at tick ${state.tick}</span>`);
+}
+
+function resetSim() {
+  stopSim();
+  state = {
+    running:false, tick:0, epsilon:1.0,
+    health:1.0, defReward:0, atkSuccess:0, detConf:0, proactive:0,
+    totalNeut:0, totalAtk:0,
+    atkCounts: new Array(8).fill(0),
+    defCounts:  new Array(8).fill(0),
+    stateCounts:new Array(5).fill(0),
+    sysState:0, nodes:[],
+    drHistory:[], asHistory:[], healthHistory:[],
+    curAtk:0, curIntensity:0, curDef:0,
+    bypassReward:0, tagHistory:[], atkDefMatrix:{},
+    healingEvents:0, verifyCount:0, alertCount:0,
+  };
+  initNodes();
+  buildStaticUI();
+  updateDOM();
+  renderCharts();
+  renderNetwork();
+  document.getElementById('event-log').innerHTML='';
+  document.getElementById('status-txt').textContent='STOPPED';
+  addLog('<span class="log-info">↺ System reset. Press START to begin simulation.</span>');
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+window.addEventListener('load', ()=>{
+  initNodes();
+  buildStaticUI();
+  updateDOM();
+  renderCharts();
+  renderNetwork();
+  addLog('<span class="log-info">CAESAR v1.0.0 — PhD Research Framework initialised.</span>');
+  addLog('<span class="log-info">Press ▶ START to begin co-evolutionary simulation.</span>');
+});
+
+window.addEventListener('resize', ()=>{ renderCharts(); renderNetwork(); });
+</script>
+</body>
+</html>

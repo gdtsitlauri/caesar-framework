@@ -1,0 +1,84 @@
+{
+  "phase": 2,
+  "dataset": {
+    "source": "real",
+    "n_samples": 200000,
+    "n_features": 52,
+    "class_dist": {
+      "0": 166122,
+      "1": 33878
+    },
+    "attack_rate": 0.16939
+  },
+  "baselines": {
+    "Random Forest IDS": {
+      "f1": 0.9954964931709118,
+      "detection_rate": 0.9949822904368358,
+      "false_pos_rate": 0.0008126655429809532,
+      "roc_auc": 0.9999493949659014,
+      "accuracy": 0.998475
+    },
+    "Decision Tree IDS": {
+      "f1": 0.9933901292596945,
+      "detection_rate": 0.9980814639905549,
+      "false_pos_rate": 0.0023176017336864222,
+      "roc_auc": 0.9987042246206281,
+      "accuracy": 0.99775
+    },
+    "Threshold IDS (Rule-based)": {
+      "f1": 0.3832533013205282,
+      "detection_rate": 0.7538370720188902,
+      "false_pos_rate": 0.4446183481820237,
+      "roc_auc": 0.7808366444890835,
+      "accuracy": 0.589
+    },
+    "CAESAR Adaptive IDS": {
+      "f1": 0.9765407520397161,
+      "detection_rate": 0.42062572188628417,
+      "false_pos_rate": 0.14969999999999994,
+      "roc_auc": 0.6354628609431421,
+      "accuracy": 0.9530815040794323
+    }
+  },
+  "caesar_training": {
+    "mean_defense_reward": 0.14267826080322266,
+    "mean_attack_success": 0.04864320158958435,
+    "mean_network_health": 0.8379424810409546,
+    "final_defense_reward": 0.1314566433429718,
+    "final_attack_success": 0.05150417611002922,
+    "attacker_fitness": 0.04642923176288605,
+    "defender_fitness": 0.30805277824401855,
+    "coevo_gap": 0.2616235613822937,
+    "robustness_score": 0.9513058811426163,
+    "neutralization_rate": 0.9647058823529412,
+    "convergence_episode": -1,
+    "total_proactive": 27
+  },
+  "phishing": {
+    "dr": 0.9999999999863013,
+    "f1": 1.0,
+    "evasion": 0.0
+  },
+  "xai_top5": [
+    {
+      "name": "ATK_DDOS",
+      "imp": 1.0
+    },
+    {
+      "name": "Latency",
+      "imp": 0.705342651175476
+    },
+    {
+      "name": "ATK_MITM",
+      "imp": 0.0
+    },
+    {
+      "name": "ATK_DATA_EXFIL",
+      "imp": 0.0
+    },
+    {
+      "name": "ATK_BRUTE_FORCE",
+      "imp": 0.0
+    }
+  ]
+}

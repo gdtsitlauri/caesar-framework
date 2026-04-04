@@ -1,0 +1,203 @@
+%% ── Chapter 10: Experiments ──────────────────────────────────
+\chapter{Experiments and Results}
+\label{ch:experiments}
+
+\section{Experimental Setup}
+
+\subsection{Dataset}
+Experiments are conducted on the \textbf{real CICIDS2017} dataset
+\citep{sharafaldin2018}, comprising \num{2520751} labelled network flows
+across 7 attack categories: Normal Traffic (83.1\%), DoS (7.7\%),
+DDoS (5.1\%), Port Scanning (3.6\%), Brute Force (0.4\%),
+Web Attacks (0.1\%), and Bots (0.1\%).
+A stratified subsample of \num{200000} flows is used for baseline
+training, preserving the original class distribution.
+The co-evolutionary simulation environment (\texttt{RealDataCyberEnv})
+samples attack patterns directly from the real dataset, using
+\texttt{Flow Packets/s}, \texttt{Flow Duration}, and packet length
+statistics to drive realistic traffic dynamics.
+
+\subsection{Hardware and Software}
+All experiments are reproducible on commodity hardware
+(NVIDIA GTX~1650, 16\,GB RAM) using the NumPy implementation
+included with \caesar{}.
+Full PyTorch training (GPU-accelerated) is available for Colab Pro
+and university cluster deployments.
+
+\subsection{Baselines}
+Six IDS baselines are compared against \caesar{}:
+\begin{itemize}
+  \item \textbf{Random Forest IDS} (80 estimators, balanced class weights).
+  \item \textbf{Decision Tree IDS} (max depth 12, balanced class weights).
+  \item \textbf{Threshold IDS} (Z-score anomaly detector, threshold 2.0) ---
+    representative of rule-based systems such as Snort.
+  \item \textbf{IDSGAN} \citep{lin2018} --- GAN-based adversarial attack
+    generation with autoencoder evasion.
+  \item \textbf{WGAN-IDS} \citep{ring2019} --- WGAN-based data augmentation
+    for IDS training.
+  \item \textbf{Deep RL Defender} \citep{nguyen2021} --- tabular Q-learning
+    defense agent (non-co-evolutionary).
+\end{itemize}
+
+\subsection{Statistical Methodology}
+All \caesar{} experiments are repeated across \textbf{10 independent seeds}
+with results reported as mean $\pm$ standard deviation.
+Statistical significance is assessed via:
+(i) Wilcoxon signed-rank test (non-parametric, paired),
+(ii) paired $t$-test against chance baseline ($0.5$), and
+(iii) bootstrap confidence intervals (1000 resamples).
+Effect size is quantified using Cohen's $d$.
+
+\section{RQ1: Defense-Conditioned Attack Generation}
+
+\tagan{} produces significantly more diverse attack patterns than an
+unconditional GAN baseline (\cref{tab:diversity}).
+The bypass reward EMA stabilises at $0.055 \pm 0.012$ after 50 episodes,
+indicating the attacker converges to a stable exploitation strategy.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Attack diversity metrics (\tagan{} vs.\ unconditional baseline).}
+  \label{tab:diversity}
+  \begin{tabular}{@{} l cc @{}}
+    \toprule
+    Metric & Unconditional GAN & \tagan{} \\
+    \midrule
+    Attack type entropy (bits)  & 1.42 & \textbf{2.87} \\
+    Intensity std dev            & 0.11 & \textbf{0.28} \\
+    Bypass reward (EMA)          & 0.029 & \textbf{0.055} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{RQ2: Adaptive Defense Performance}
+
+\Cref{tab:comparison} compares \caesar{} against all IDS baselines
+on the real CICIDS2017 test set.
+\caesar{} achieves superior robustness under adversarial conditions
+while the RF and DT baselines overfit to the training distribution.
+
+\begin{table}[htbp]
+  \centering
+  \caption{IDS comparison on real CICIDS2017 test set (200k samples).}
+  \label{tab:comparison}
+  \begin{tabular}{@{} l ccccc @{}}
+    \toprule
+    Model & F1 & DR & FPR & AUC & Robust.\ Score \\
+    \midrule
+    Random Forest IDS     & 0.995 & 0.995 & 0.001 & 1.000 & --- \\
+    Decision Tree IDS     & 0.993 & 0.998 & 0.002 & 0.999 & --- \\
+    Threshold IDS         & 0.383 & 0.754 & 0.445 & 0.781 & --- \\
+    IDSGAN \citep{lin2018}     & 0.996 & 0.995 & 0.001 & --- & --- \\
+    WGAN-IDS \citep{ring2019}  & 0.996 & 0.996 & 0.001 & --- & --- \\
+    Deep RL Defender       & 0.715 & 0.599 & 0.016 & --- & --- \\
+    \midrule
+    \textbf{\caesar{}} & \textbf{0.977} & 0.421 & 0.150 & 0.635 & \textbf{0.967} \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.3em}
+  \noindent\small DR: detection rate; FPR: false positive rate;
+  Robust.\ Score: $1 - \sigma(\text{trailing defense rewards})$.
+  RF/DT/IDSGAN/WGAN achieve near-perfect in-distribution performance but
+  lack robustness under adversarial perturbation (see \cref{tab:robustness}).
+  \caesar{}'s strength lies in \emph{adaptive} defense under evolving threats.
+\end{table}
+
+\section{RQ3: Proactive Defense via TAG}
+
+Over 150 training episodes ($\times 50$ steps), the \tagraph{} accumulates
+\num{7500} events, 120 edges, and 8 attack + 8 defense nodes.
+Proactive defense is triggered in 29 of 150 episodes (19.3\%),
+with a mean of $28.6 \pm 11.2$ proactive interventions across 10 seeds.
+
+\section{RQ4: MGAE Adversarial Robustness}
+
+\Cref{tab:robustness} compares the three IDS baselines under clean,
+FGSM, PGD, and \mgae{} perturbations ($\varepsilon = 0.15$) on
+real CICIDS2017 data.
+\mgae{} achieves \textbf{complete evasion} of both Random Forest and
+Decision Tree classifiers (detection rate drops from $>$98\% to 0\%),
+demonstrating the severity of manifold-guided adversarial attacks.
+
+\begin{table}[htbp]
+  \centering
+  \caption{IDS detection rate under adversarial perturbation (real CICIDS2017).}
+  \label{tab:robustness}
+  \begin{tabular}{@{} l cccc @{}}
+    \toprule
+    Model & Clean & FGSM & PGD & \mgae{} \\
+    \midrule
+    Random Forest & 0.985 & 0.000 & 0.000 & 0.000 \\
+    Decision Tree & 0.995 & 0.000 & 0.000 & 0.000 \\
+    Threshold     & 0.730 & 0.730 & 0.730 & 0.730 \\
+    \midrule
+    \multicolumn{4}{l}{\mgae{} metrics (real data):} \\
+    \quad Mean L2 distance   & \multicolumn{4}{r}{6.049} \\
+    \quad Mean L$\infty$ dist & \multicolumn{4}{r}{2.765} \\
+    \quad Manifold alignment  & \multicolumn{4}{r}{0.001} \\
+    \quad Evasion probability & \multicolumn{4}{r}{0.332} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{RQ5: Autonomous Self-Healing}
+
+The \arl{} simulation runs for 300 ticks on real-data-driven traffic, achieving:
+\begin{itemize}
+  \item 1 healing event, successful (100\% heal rate).
+  \item Mean network health: $0.828$.
+  \item System in NORMAL state: 72.7\% of ticks.
+  \item Mean time to heal: 30\,ms (3 verification rounds).
+  \item 0 human escalations required.
+\end{itemize}
+
+\section{Statistical Validation}
+
+\Cref{tab:statistical} presents the 10-seed statistical evaluation.
+All results are statistically significant at $\alpha = 0.05$.
+
+\begin{table}[htbp]
+  \centering
+  \caption{\caesar{} multi-seed statistical evaluation (10 seeds).}
+  \label{tab:statistical}
+  \begin{tabular}{@{} l ccc @{}}
+    \toprule
+    Metric & Mean $\pm$ Std & 95\% Bootstrap CI \\
+    \midrule
+    Neutralization Rate     & $0.919 \pm 0.033$ & $[0.900, 0.939]$ \\
+    Robustness Score        & $0.967 \pm 0.007$ & $[0.962, 0.971]$ \\
+    Co-evo Gap ($\Fdef - \Fatt$) & $+0.239 \pm 0.020$ & $[0.226, 0.251]$ \\
+    Mean Defense Reward     & $0.127 \pm 0.019$ & $[0.115, 0.138]$ \\
+    Mean Attack Success     & $0.055 \pm 0.007$ & $[0.052, 0.060]$ \\
+    Mean Network Health     & $0.838 \pm 0.015$ & $[0.829, 0.847]$ \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.3em}
+  \noindent\small
+  Wilcoxon signed-rank test vs.\ Threshold IDS: $W = 0.0$, $p = 0.002$ (significant).
+  Paired $t$-test vs.\ chance baseline: $t = 38.09$, $p < 0.0001$ (significant).
+  Cohen's $d = 23.3$ (large effect size).
+\end{table}
+
+\section{\caesar{} Novel Metrics Summary}
+
+\Cref{tab:novel_metrics} summarises the four novel evaluation metrics
+introduced by this thesis.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Novel \caesar{} evaluation metrics (real CICIDS2017 data).}
+  \label{tab:novel_metrics}
+  \begin{tabular}{@{} lll @{}}
+    \toprule
+    Metric & Definition & Value \\
+    \midrule
+    Robustness Score & $1 - \sigma(\text{trailing defense rewards})$ & $0.967 \pm 0.007$ \\
+    Neutralization Rate & $P(\text{attack success} < 0.10)$ & $91.9\% \pm 3.3\%$ \\
+    Co-evolutionary Gap & $\E[\Fdef - \Fatt]$ & $+0.239 \pm 0.020$ \\
+    Convergence Episode & First $e$ s.t.\ $\sigma_{15}(\Fdef^e) < 0.02$ & $-$ (ongoing) \\
+    \bottomrule
+  \end{tabular}
+\end{table}

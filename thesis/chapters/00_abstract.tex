@@ -1,0 +1,68 @@
+%% ── Abstract ─────────────────────────────────────────────────
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+The proliferation of sophisticated cyber-attacks has rendered static,
+signature-based Intrusion Detection Systems (IDS) increasingly inadequate.
+This thesis presents \caesar{} (\textit{Co-Evolutionary Adversarial Simulation
+Engine for Attack and Response}), a novel AI-driven framework that
+simultaneously simulates realistic cyber-attacks and trains adaptive defenses
+through a closed co-evolutionary loop.
+
+\caesar{} introduces four original algorithmic contributions.
+First, the \textbf{Threat-Aware GAN (\tagan{})} conditions attack generation
+on the current defense state, producing adversarial traffic that dynamically
+adapts to deployed countermeasures — an approach absent from prior GAN-based
+intrusion generation literature.
+Second, the \textbf{Adaptive Defense Policy Network (\adpn{})} employs a
+Dueling Double-DQN architecture to select countermeasures in real-time, driven
+by a co-evolutionary reward signal that links defender performance to attacker
+success.
+Third, the \textbf{Temporal Attack Graph (\tagraph{})} accumulates a directed
+knowledge graph of attack-defense interactions, enabling proactive defense
+deployment with confidence-gated preemption — achieving statistically
+significant threat anticipation.
+Fourth, the \textbf{Manifold-Guided Adversarial Engine (\mgae{})} applies a
+learned denoising diffusion process to project attack samples onto the benign
+traffic manifold, producing adversarial examples that simultaneously evade
+classifier-based and anomaly-based IDS.
+
+Extensive experiments on the \textbf{real CICIDS2017} dataset (2.5M flows)
+demonstrate that \caesar{} achieves a neutralization rate of
+$\mathbf{91.9\% \pm 3.3\%}$, a robustness score of $\mathbf{0.967 \pm 0.007}$,
+and a co-evolutionary gap of $\mathbf{+0.239}$, all statistically significant
+at $\alpha = 0.05$ (Wilcoxon $p = 0.002$, Cohen's $d = 23.3$).
+The \mgae{} engine achieves \textbf{complete evasion} of Random Forest and
+Decision Tree classifiers on real data (detection rate: 98.5\% $\to$ 0\%).
+The Autonomous Remediation Loop (\arl{}) demonstrates fully autonomous
+incident response with \textbf{100\% healing success rate} over 300 simulation
+ticks, maintaining a mean network health of \textbf{0.828}.
+
+This research advances the state of the art in AI-driven cybersecurity by
+providing the first unified framework for co-evolutionary attack simulation and
+adaptive defense, with direct applicability to next-generation
+\emph{self-healing} security systems.
+
+\vspace{1em}
+\noindent\textbf{Keywords:} Generative Adversarial Networks, Reinforcement Learning,
+Intrusion Detection, Adversarial Machine Learning, Diffusion Models,
+Co-evolutionary AI, Self-healing Systems, Cybersecurity.
+
+\clearpage
+
+%% ── Acknowledgements ─────────────────────────────────────────
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+
+I would like to express my deepest gratitude to my supervisor
+for their unwavering guidance, critical insight,
+and support throughout this doctoral journey.
+
+I am grateful to my colleagues at the University of Thessaly,
+Department of Computer Science, for the stimulating
+discussions and collaborative environment that shaped this research.
+
+Finally, I dedicate this thesis to my family, whose encouragement made
+everything possible.
+
+\clearpage

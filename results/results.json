@@ -1,0 +1,21 @@
+{
+  "mean_defense_reward": 0.15837988257408142,
+  "mean_attack_success": 0.0056698257103562355,
+  "mean_network_health": 0.8510383367538452,
+  "final_defense_reward": 0.1628960371017456,
+  "final_attack_success": 0.0026419428177177906,
+  "attacker_fitness": 0.005389146972447634,
+  "defender_fitness": 0.3283068835735321,
+  "coevo_gap": 0.3229176998138428,
+  "robustness_score": 0.9634349830448627,
+  "neutralization_rate": 1.0,
+  "convergence_episode": -1,
+  "total_proactive": 41,
+  "eval_avg_dr": 0.15466900794729707,
+  "eval_avg_as": 0.0017808760405655997,
+  "eval_avg_det": 0.26832828213897725,
+  "eval_avg_fpr": 0.12979999999999997,
+  "eval_health": 0.8420477786162293,
+  "eval_f_att": 0.001693247832173135,
+  "eval_f_def": 0.3229909354621504
+}

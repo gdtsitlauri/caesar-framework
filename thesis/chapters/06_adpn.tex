@@ -1,0 +1,73 @@
+\chapter{Adaptive Defense Policy Network (\adpn{})}
+\label{ch:adpn}
+
+\section{Problem Formulation}
+
+We model the defense problem as an MDP
+$(\mathcal{S}, \mathcal{A}, \mathcal{R}, \mathcal{T}, \gamma)$:
+\begin{itemize}
+  \item $\mathcal{S} \subset \mathbb{R}^{16}$: network state space
+  \item $\mathcal{A} = \{0,\ldots,7\}$: 8 discrete defense actions
+  \item $\mathcal{R}(s,a) \in [-1.5, +1.0]$: defense reward minus FPR cost
+  \item $\mathcal{T}$: transitions induced by the \caesar{} environment
+  \item $\gamma = 0.95$: discount factor
+\end{itemize}
+
+\section{Dueling Double-DQN Architecture}
+
+\subsection{Dueling Streams}
+\begin{equation}
+  Q(s,a;\theta,\alpha,\beta) = V(s;\theta,\beta)
+    + A(s,a;\theta,\alpha)
+    - \frac{1}{|\mathcal{A}|}\sum_{a'} A(s,a';\theta,\alpha)
+\end{equation}
+
+Shared feature extractor: Linear(16,128)--ReLU--Linear(128,128)--ReLU.
+Value stream: Linear(128,64)--ReLU--Linear(64,1).
+Advantage stream: Linear(128,64)--ReLU--Linear(64,8).
+
+\subsection{Double DQN Target}
+Decoupling action selection from evaluation:
+\begin{equation}
+  y_t = r_t + \gamma\, Q_{\hat\theta}\!\left(s_{t+1},
+    \argmax_{a'} Q_\theta(s_{t+1},a')\right)
+\end{equation}
+This reduces the overestimation bias that standard DQN exhibits when
+$Q$-values are noisy — particularly important in the early co-evolutionary
+phase when attack patterns are highly non-stationary.
+
+\section{Replay Buffer and Sampling}
+
+A circular replay buffer of capacity 12,000 stores tuples
+$(s_t, a_t, r_t, s_{t+1}, \mathrm{done})$.
+Mini-batches of size 64 are sampled uniformly.
+The target network $Q_{\hat\theta}$ is synchronized with $Q_\theta$
+every 100 gradient steps.
+
+\section{Proactive Override Mechanism}
+
+When the \tagraph{} produces a proactive defense recommendation $p_t$
+with confidence $\geq \tau_{\mathrm{pro}} = 0.55$, \adpn{} applies
+$a_t = p_t$ directly, bypassing the $\varepsilon$-greedy policy.
+This transition is stored in the replay buffer as a standard
+$(s_t, p_t, r_t, s_{t+1})$ tuple so the network learns to associate
+the predicted attack context with the optimal countermeasure.
+
+\section{Co-evolutionary Reward Shaping}
+
+The environment reward $r_d^{\mathrm{env}}$ is shaped with a
+false-positive penalty:
+\begin{equation}
+  r_t = r_d^{\mathrm{env}}(a_t) - 0.4 \cdot \mathrm{FPR}(a_t)
+\end{equation}
+This prevents the agent from over-deploying aggressive actions
+(e.g.\ node isolation) when a milder response (rate limiting) suffices.
+
+\section{Convergence and $\varepsilon$-Decay}
+
+$\varepsilon$ decays exponentially: $\varepsilon_{t+1} = \max(0.05,
+0.995 \cdot \varepsilon_t)$, reaching minimum in approximately
+600 steps. The agent transitions from exploration-dominant to
+exploitation-dominant behaviour around episode 60 of 150, which
+coincides with the \tagraph{} accumulating sufficient transition
+statistics for reliable proactive predictions.
