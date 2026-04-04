@@ -1,177 +1,138 @@
-# CAESAR Framework — Complete PhD Research Package
-## Co-Evolutionary Adversarial Simulation Engine for Attack & Response
+# CAESAR
+
+**Co-Evolutionary Adversarial Simulation Engine for Attack & Response**
+
+An AI-driven cybersecurity framework that simultaneously simulates realistic cyber-attacks and trains adaptive defenses through a closed co-evolutionary loop. CAESAR detects threats, responds autonomously, and self-heals — without human intervention.
 
 ---
 
-## 📁 Complete File Structure
+## What It Does
+
+CAESAR puts an AI attacker against an AI defender inside a simulated network. Both evolve together: the attacker learns to bypass defenses, the defender learns to stop new attacks. The result is a defense system that handles threats it has never seen before.
+
+### 6 Novel Algorithms
+
+| Algorithm | What it does |
+|-----------|-------------|
+| **TA-GAN** | Generates attacks that adapt to deployed defenses in real-time |
+| **ADPN** | Dueling Double-DQN agent that selects the best countermeasure |
+| **TAG** | Temporal graph that predicts the next attack before it arrives |
+| **CAESAR Loop** | Co-evolutionary engine linking attacker and defender fitness |
+| **MGAE** | Diffusion model that makes attacks invisible to classifiers |
+| **ARL** | Self-healing state machine: detect, respond, heal, verify |
+
+---
+
+## Results (Real CICIDS2017 Data — 2.5M flows)
+
+| Metric | Value |
+|--------|-------|
+| Neutralization Rate | **91.9% +/- 3.3%** |
+| Robustness Score | **0.967 +/- 0.007** |
+| Co-evolutionary Gap | **+0.239** (defender wins) |
+| MGAE vs Random Forest | 98.5% -> **0% detection** |
+| MGAE vs Decision Tree | 99.5% -> **0% detection** |
+| Self-Healing Success | **100%** |
+| Human Interventions | **0** |
+| Statistical Significance | Wilcoxon p=0.002, Cohen's d=23.3 |
+
+---
+
+## Quick Start
+
+### Install
+```bash
+git clone https://github.com/gdtsitlauri/caesar-framework.git
+cd caesar-framework
+pip install -r requirements.txt
+```
+
+### Run (no GPU needed)
+```bash
+python caesar_demo.py          # Core co-evolutionary training
+python phase2_run.py           # Baselines + XAI + Phishing detection
+python phase3_run.py           # Adversarial robustness + Self-healing
+python statistical_eval.py     # 10-seed statistical validation
+```
+
+### Live Dashboard
+Open `dashboard.html` in your browser — real-time simulation visualization.
+
+### With Real CICIDS2017 Data
+Download from [Kaggle](https://www.kaggle.com/datasets/cicdataset/cicids2017), place the CSV in the project root, and re-run the scripts. CAESAR auto-detects real data.
+
+### Google Colab (GPU)
+Upload `colab/CAESAR_Complete.ipynb` to Colab, select T4/A100 runtime, run all cells.
+
+---
+
+## Project Structure
 
 ```
 caesar-framework/
-│
-├── 📂 caesar/                          # Core Python package
-│   ├── __init__.py
-│   ├── environment.py                  # CyberEnvironment simulation
-│   ├── ta_gan.py                       # TA-GAN (PyTorch)
-│   ├── adpn.py                         # ADPN Dueling Double-DQN (PyTorch)
-│   ├── threat_graph.py                 # Temporal Attack Graph
-│   ├── caesar_algorithm.py             # Core co-evolutionary loop (PyTorch)
-│   ├── metrics.py                      # Robustness, neutralization, coevo metrics
-│   ├── visualization.py               # Publication figures
-│   ├── dataset.py                      # CICIDS2017 loader + synthetic generator
-│   ├── baselines.py                    # RF IDS, DT IDS, Threshold IDS
-│   ├── explainability.py              # Permutation importance, Q-attribution
-│   ├── phishing_module.py             # LLM phishing generator + detector
-│   ├── diffusion_module.py            # MGAE Diffusion engine (Novel #5)
-│   └── self_healing.py                # ARL Self-healing system (Novel #6)
-│
-├── 📂 thesis/                          # LaTeX PhD Thesis
-│   ├── main.tex                        # Root document
-│   ├── references.bib                  # 18 references
-│   └── chapters/
-│       ├── 00_abstract.tex
-│       ├── 01_introduction.tex         # ✅ Full content
-│       ├── 02_background.tex           # ✅ Full content (GANs, DQN, DDPM, graphs)
-│       ├── 03_related_work.tex
-│       ├── 04_framework.tex            # ✅ Full content + TikZ architecture + Algorithm
-│       ├── 05_tagan.tex
-│       ├── 06_adpn.tex
-│       ├── 07_tag.tex
-│       ├── 08_mgae.tex
-│       ├── 09_self_healing.tex
-│       ├── 10_experiments.tex          # ✅ Full content + all tables
-│       ├── 11_discussion.tex
-│       ├── 12_conclusion.tex           # ✅ Full content
-│       ├── A_code.tex
-│       └── B_datasets.tex
-│
-├── 📂 paper/
-│   └── caesar_paper.tex               # ✅ Full IEEE conference paper
-│
-├── 📂 colab/
-│   └── CAESAR_Complete.ipynb          # ✅ Full Colab notebook (GPU-ready)
-│
-├── 📂 results/                         # Generated figures (15 total)
-│   ├── training_curves.png
-│   ├── coevo_fitness.png
-│   ├── threat_heatmaps.png
-│   ├── metrics_summary.png
-│   ├── per_attack_breakdown.png
-│   ├── comparison_models.png
-│   ├── xai_feature_importance.png
-│   ├── xai_q_attribution.png
-│   ├── xai_decision_rules.png
-│   ├── phishing_analysis.png
-│   ├── robustness_evaluation.png
-│   ├── mgae_diffusion.png
-│   ├── self_healing_timeline.png
-│   ├── mgae_sensitivity.png
-│   └── self_healing_summary.png
-│
-├── caesar_demo.py                      # ✅ NumPy standalone (no GPU needed)
-├── main.py                             # ✅ PyTorch entry point
-├── phase2_run.py                       # ✅ Phase 2 pipeline
-├── phase3_run.py                       # ✅ Phase 3 pipeline
-├── dashboard.html                      # ✅ Live interactive dashboard
-└── requirements.txt
+|-- caesar/                    # Core Python package (14 modules)
+|   |-- environment.py         # Network simulation environment
+|   |-- ta_gan.py              # Threat-Aware GAN (PyTorch)
+|   |-- adpn.py                # Adaptive Defense Policy Network
+|   |-- threat_graph.py        # Temporal Attack Graph
+|   |-- caesar_algorithm.py    # Co-evolutionary loop
+|   |-- diffusion_module.py    # MGAE diffusion engine
+|   |-- self_healing.py        # Autonomous Remediation Loop
+|   |-- dataset.py             # CICIDS2017 loader
+|   |-- baselines.py           # RF, DT, Threshold, IDSGAN, WGAN, DRL baselines
+|   |-- explainability.py      # Feature importance + Q-attribution
+|   |-- phishing_module.py     # Phishing generator + detector
+|   |-- metrics.py             # Evaluation metrics
+|   |-- visualization.py       # Publication-quality figures
+|   +-- __init__.py
+|
+|-- results/                   # Generated figures + reports
+|-- colab/                     # Colab notebook
+|-- caesar_demo.py             # Standalone demo (NumPy only)
+|-- main.py                    # Full PyTorch entry point
+|-- phase2_run.py              # Phase 2 pipeline
+|-- phase3_run.py              # Phase 3 pipeline
+|-- statistical_eval.py        # Statistical validation
+|-- dashboard.html             # Interactive browser dashboard
++-- requirements.txt
 ```
 
 ---
 
-## 🆕 Novel Contributions (6 total)
+## Baselines Compared
 
-| # | Name | Type | Location |
-|---|------|------|----------|
-| 1 | **TA-GAN** | Defense-conditioned attack generator | `caesar/ta_gan.py` |
-| 2 | **ADPN** | Dueling Double-DQN adaptive defender | `caesar/adpn.py` |
-| 3 | **TAG** | Temporal Attack Graph + proactive defense | `caesar/threat_graph.py` |
-| 4 | **CAESAR Loop** | Co-evolutionary fitness function | `caesar/caesar_algorithm.py` |
-| 5 | **MGAE** | Manifold-Guided Adversarial Engine (Diffusion) | `caesar/diffusion_module.py` |
-| 6 | **ARL** | Autonomous Remediation Loop (Self-healing) | `caesar/self_healing.py` |
+| Model | F1 | Detection Rate | Robustness |
+|-------|-----|---------------|------------|
+| Random Forest IDS | 0.995 | 0.995 | Fails under MGAE |
+| Decision Tree IDS | 0.993 | 0.998 | Fails under MGAE |
+| Threshold IDS | 0.383 | 0.754 | Partial |
+| IDSGAN (Lin et al.) | 0.996 | 0.995 | Fails under MGAE |
+| WGAN-IDS (Ring et al.) | 0.996 | 0.996 | Fails under MGAE |
+| Deep RL Defender | 0.715 | 0.599 | Partial |
+| **CAESAR** | **0.977** | **0.421** | **0.967** |
 
----
-
-## 🚀 Running Everything
-
-### Local (NumPy, no GPU):
-```bash
-python3 caesar_demo.py          # Phase 1: CAESAR core
-python3 phase2_run.py           # Phase 2: Baselines + XAI + Phishing
-python3 phase3_run.py           # Phase 3: Diffusion + Robustness + Self-healing
-open dashboard.html             # Live interactive dashboard
-```
-
-### Local (PyTorch GPU):
-```bash
-pip install -r requirements.txt
-python main.py --episodes 500 --steps 100 --save
-```
-
-### Google Colab (GPU T4/A100):
-1. Upload `CAESAR_Complete.ipynb`
-2. Runtime → Change runtime type → GPU (T4)
-3. Run all cells
-4. Download `caesar_results.zip`
-
-### With real CICIDS2017 data:
-```bash
-# Kaggle download:
-pip install kaggle
-kaggle datasets download -d cicdataset/cicids2017 -p data/
-python main.py --data data/cicids2017.csv --episodes 500
-```
+CAESAR's strength is **adaptive robustness** — it keeps working when adversarial attacks break all other models.
 
 ---
 
-## 📊 Full Results Summary
+## Requirements
 
-| Phase | Metric | Value |
-|-------|--------|-------|
-| 1 | Neutralization Rate | **96.5%** |
-| 1 | Robustness Score | **0.951** |
-| 1 | Co-evolutionary Gap | **+0.262** |
-| 1 | TAG edges learned | 120 |
-| 1 | Proactive defenses | 27 |
-| 2 | RF IDS F1 | 1.000 |
-| 2 | DT IDS F1 | 1.000 |
-| 2 | Threshold IDS F1 | 0.712 |
-| 2 | CAESAR F1 (adaptive) | **0.977** |
-| 2 | Phishing detection DR | **0.857** |
-| 2 | Phishing evasion (perturbed) | 0.220 |
-| 3 | MGAE evasion prob | **41.4%** |
-| 3 | Self-healing success | **100%** |
-| 3 | Mean network health (ARL) | **76.4%** |
-| 3 | Human escalations | **0** |
+- Python 3.10+
+- NumPy, Matplotlib, scikit-learn, pandas, scipy, networkx
+- PyTorch 2.0+ (optional, for GPU training)
 
 ---
 
-## 📚 Target Publications
+## License
 
-| Venue | Tier | Deadline |
-|-------|------|----------|
-| IEEE S&P (Oakland) | A* | Nov |
-| USENIX Security | A* | Oct |
-| NDSS | A* | Jul |
-| CCS | A* | Jan |
-| IEEE TIFS (journal) | Q1 | Rolling |
-| Computers & Security | Q1 | Rolling |
+MIT License. See [LICENSE](LICENSE) for details.
+
+This framework is for **defensive cybersecurity research only**.
 
 ---
 
-## 📝 PhD Timeline
+## Author
 
-| Year | Phase | Milestone |
-|------|-------|-----------|
-| Y1-Q1 | Literature Review | Background, RQ formulation |
-| Y1-Q2 | Phase 1 | CAESAR core, TA-GAN, ADPN |
-| Y1-Q3 | Phase 1 | TAG, experiments, first paper |
-| Y1-Q4 | Phase 2 | Baselines, XAI, phishing module |
-| Y2-Q1 | Phase 3 | MGAE, robustness evaluation |
-| Y2-Q2 | Phase 3 | Self-healing ARL, second paper |
-| Y2-Q3 | Writing | Thesis Chapters 1-6 |
-| Y2-Q4 | Writing | Thesis Chapters 7-12 |
-| Y3-Q1 | Revision | Thesis revisions, viva prep |
-| Y3-Q2 | Submission | Final submission + viva |
+**George David Tsitlauri** — University of Thessaly, Department of Computer Science
 
----
-
-*CAESAR Framework — PhD Research Package · Version 1.0*
+Contact: gdtsitlauri@gmail.com
