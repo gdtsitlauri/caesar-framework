@@ -29,12 +29,28 @@ desktop.ini
 # Jupyter
 .ipynb_checkpoints/
 
-# Thesis & Paper (private)
-thesis/
-paper/
-
-# Citation file
-CITATION.cff
+# LaTeX build artifacts
+thesis/*.aux
+thesis/*.bbl
+thesis/*.blg
+thesis/*.log
+thesis/*.out
+thesis/*.toc
+thesis/*.lof
+thesis/*.lot
+thesis/*.loa
+thesis/*.fls
+thesis/*.fdb_latexmk
+thesis/*.synctex.gz
+thesis/*.nav
+thesis/*.snm
+thesis/*.vrb
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
 
 # Large data files (download separately)
 *.csv

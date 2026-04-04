@@ -1,0 +1,53 @@
+%% ── Chapter 12: Conclusion ───────────────────────────────────
+\chapter{Conclusion}
+\label{ch:conclusion}
+
+\section{Summary of Contributions}
+
+This thesis presented \caesar{}, a co-evolutionary AI framework for
+simultaneous attack simulation and adaptive defense in cybersecurity.
+Six novel algorithmic contributions were introduced and evaluated:
+
+\begin{enumerate}
+  \item \tagan{} demonstrated that conditioning attack generation on the
+    defense state produces more diverse, effective adversarial traffic than
+    unconditional generation (RQ1 confirmed).
+  \item \adpn{} achieved a neutralization rate of $91.9\% \pm 3.3\%$ and
+    robustness score of $0.967 \pm 0.007$ through co-evolutionary training,
+    statistically significant at $p = 0.002$ (Wilcoxon), outperforming all
+    static baselines and SOTA methods under adversarial conditions (RQ2 confirmed).
+  \item \tagraph{} enabled proactive defense in 18\% of episodes with 63.2\%
+    prediction accuracy, demonstrating the value of temporal graph memory
+    for anticipatory threat response (RQ3 confirmed).
+  \item \mgae{} achieved complete evasion (98.5\% $\to$ 0\% detection rate)
+    against RF and DT classifiers on real CICIDS2017 data through
+    manifold-guided diffusion (RQ4 confirmed).
+  \item \arl{} achieved 100\% autonomous healing success over 300 ticks
+    with zero human escalations, validating the self-healing AI security
+    concept (RQ5 confirmed).
+\end{enumerate}
+
+\section{Future Work}
+
+\begin{description}
+  \item[Real-world data integration] Extend to full CICIDS2017 and Bot-IoT
+    datasets with real network captures.
+  \item[Graph Neural Networks for TAG] Replace Markov-chain prediction with
+    a GNN operating directly on the \tagraph{} structure.
+  \item[LLM integration] Fine-tune domain-specific language models for
+    realistic spear-phishing generation (Phase 2 extension).
+  \item[Federated \caesar{}] Deploy the co-evolutionary loop across
+    distributed network segments using federated learning.
+  \item[Formal verification] Prove convergence properties of the
+    co-evolutionary loop under specific game-theoretic assumptions.
+  \item[Hardware deployment] Implement the \arl{} as a real-time network
+    appliance using FPGA acceleration.
+\end{description}
+
+\section{Closing Remarks}
+
+The arms race between attackers and defenders is fundamentally a
+co-evolutionary process. Static defenses will always lag behind adaptive
+adversaries. \caesar{} demonstrates that AI can be placed on both sides
+of this race — not to make attacks easier, but to train defenses that are
+robust enough to face the attacks of tomorrow, today.

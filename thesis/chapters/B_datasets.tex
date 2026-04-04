@@ -1,0 +1,50 @@
+\chapter{Datasets}
+\label{app:datasets}
+
+\section{CICIDS2017}
+
+The Canadian Institute for Cybersecurity Intrusion Detection System
+dataset 2017 \cite{sharafaldin2018} contains network traffic captures
+over five days with 14 attack classes.
+Features are extracted using CICFlowMeter from PCAP captures.
+
+\begin{table}[H]
+\centering
+\caption{CICIDS2017 class distribution (approximate).}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Attack Class & Count & Fraction \\
+\midrule
+BENIGN           & 2,273,097 & 53.0\% \\
+DDoS             & 128,027   & 15.5\% \\
+PortScan         & 158,930   & 14.0\% \\
+DoS Hulk         & 231,073   &  6.0\% \\
+DoS GoldenEye    &  10,293   &  2.0\% \\
+Bot              &   1,966   &  2.2\% \\
+Web Attack       &   2,180   &  1.9\% \\
+SSH-Patator      &   5,897   &  1.0\% \\
+FTP-Patator      &   7,938   &  0.9\% \\
+Heartbleed       &      11   &  0.01\% \\
+Others           & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Download:} \url{https://www.unb.ca/cic/datasets/ids-2017.html}
+or via Kaggle: \texttt{kaggle datasets download -d cicdataset/cicids2017}
+
+\section{Bot-IoT}
+
+Koroniotis et al.\ \cite{koroniotis2019} provide IoT botnet traffic
+with 5 million records across normal and four attack types (DDoS, DoS,
+reconnaissance, theft).
+
+\textbf{Download:} \url{https://research.unsw.edu.au/projects/bot-iot-dataset}
+
+\section{Synthetic Dataset}
+
+For CPU-only experiments, \caesar{} generates a 30,000-sample
+CICIDS2017-matched synthetic dataset with feature distributions
+calibrated to published statistics.
+The generator is implemented in \texttt{caesar/dataset.py} and uses
+a fixed seed (42) for reproducibility.

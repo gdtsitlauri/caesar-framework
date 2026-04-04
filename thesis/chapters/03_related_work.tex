@@ -1,0 +1,80 @@
+%% ── Chapter 3: Related Work ─────────────────────────────────
+\chapter{Related Work}
+\label{ch:related}
+
+This chapter surveys four research streams underpinning \caesar{}.
+For each stream we identify the key limitation that \caesar{} addresses.
+
+\section{GAN-Based Intrusion Detection and Attack Synthesis}
+
+Ring et al.\ \cite{ring2019} train a WGAN on CICIDS2017 for IDS data
+augmentation. Lin et al.\ \cite{lin2018} introduce IDSGAN, using IDS
+output as an adversarial signal to produce evasive traffic. Both
+generators are \emph{unconditional} — they do not adapt to the current
+defense state. \tagan{} closes this gap by conditioning $G_\phi$ on the
+real-time defense embedding $\mathbf{d}_t \in \mathbb{R}^8$.
+
+Xu et al.\ \cite{xu2019} introduce CTGAN for mixed-type tabular data.
+\caesar{} extends this by treating the defense state as a continuous
+conditioning vector rather than a categorical label.
+
+\section{Reinforcement Learning for Cyber-Defense}
+
+Elderman et al.\ \cite{elderman2017} model network defense as a
+two-player zero-sum Markov game. Hammar and Stadler \cite{hammar2021}
+use multi-agent RL for intrusion prevention but fix the attacker policy.
+\caesar{} allows both attacker and defender to co-evolve, which is the
+key novelty.
+
+The Dueling Double-DQN architecture \cite{wang2016,hasselt2016} is the
+dominant paradigm for discrete countermeasure selection
+\cite{nguyen2021}. \adpn{} employs this and augments the reward signal
+with co-evolutionary fitness terms.
+
+\section{Adversarial ML in Network Security}
+
+FGSM \cite{goodfellow2014b} and PGD \cite{madry2018} operate in the
+gradient direction and often produce physically invalid network flows.
+Pierazzi et al.\ \cite{pierazzi2020} distinguish feature-space from
+problem-space attacks. \mgae{} bridges this gap via diffusion-guided
+manifold projection.
+
+Xiao et al.\ \cite{xiao2022} demonstrate that partial reverse diffusion
+outperforms FGSM/PGD in image adversarial examples at equal distortion.
+\mgae{} adapts this to tabular traffic data.
+
+\section{Self-Healing Security Systems}
+
+Coutinho et al.\ \cite{coutinho2014} propose a self-healing cloud
+architecture using autonomic loops. Cheng et al.\ \cite{cheng2017}
+apply RL to automated incident response but without generative attack
+simulation. \caesar{}'s \arl{} unifies these streams.
+
+\section{Positioning of \caesar{}}
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of \caesar{} with representative related work.}
+\label{tab:related}
+\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Work & \makecell{Def.-cond.\\attacker} &
+       \makecell{Co-evol.\\loop} &
+       \makecell{Proactive\\defense} &
+       \makecell{Manifold\\evasion} &
+       \makecell{Self-\\healing} \\
+\midrule
+IDSGAN \cite{lin2018}                & -- & -- & -- & -- & -- \\
+Elderman et al.\ \cite{elderman2017} & -- & partial & -- & -- & -- \\
+Hammar \& Stadler \cite{hammar2021}  & -- & -- & -- & -- & -- \\
+Xiao et al.\ \cite{xiao2022}         & -- & -- & -- & partial & -- \\
+\textbf{\caesar{} (ours)}            & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:related} confirms no prior work combines all five
+properties. The closest is Elderman et al., which includes partial
+co-evolution but lacks conditioned generation, manifold evasion, and
+self-healing.
