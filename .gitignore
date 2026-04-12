@@ -65,3 +65,4 @@ data/
 
 # Results are tracked (figures for thesis)
 # results/ is NOT ignored
+.claude
