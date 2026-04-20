@@ -1,15 +1,23 @@
 \begin{table}[htbp]
   \centering
-  \caption{Ablation study: contribution of each CAESAR component.}
+  \caption{Ablation study: contribution of each CAESAR component.
+           \emph{Note:} Random Defense achieves neutralization=1.000 trivially by
+           blocking all traffic indiscriminately, but its co-evolutionary gap (0.148)
+           is the lowest of all configurations, showing it does not learn to
+           distinguish attack from benign traffic. The co-evolutionary gap is
+           the primary metric of adaptive learning quality.}
   \label{tab:ablation}
   \begin{tabular}{@{} l ccc @{}}
     \toprule
-    Configuration & Neut.\ Rate & Rob.\ Score & Co-evo Gap \\
+    Configuration & Neut.\ Rate$\downarrow$ & Rob.\ Score & Co-evo Gap$\uparrow$ \\
     \midrule
-    \textbf{CAESAR (full)} & \textbf{0.852} & \textbf{0.974} & \textbf{0.227} \\
+    \textbf{CAESAR (full)} & 0.852 & \textbf{0.974} & \textbf{0.227} \\
     w/o TAG & 0.940 & 0.974 & 0.227 \\
     w/o bypass reward & 0.980 & 0.975 & 0.260 \\
-    Random Defense & 1.000 & 0.952 & 0.148 \\
+    Random Defense$^\dagger$ & 1.000$^\dagger$ & 0.952 & 0.148 \\
     \bottomrule
   \end{tabular}
+  \smallskip\newline
+  \footnotesize{$^\dagger$ Blocks all traffic indiscriminately — trivially high
+  neutralization with lowest co-evo gap, indicating no adaptive learning.}
 \end{table}

@@ -100,12 +100,20 @@ logs   = caesar.train(150, 50, verbose=False)
 eval_r = caesar.evaluate(20, 50)
 tm     = compute_metrics(logs)
 cae = {
-    'model':          'CAESAR Adaptive IDS',
-    'f1':             float(1 - eval_r['avg_as'] * 0.5),
+    'model':             'CAESAR Adaptive IDS',
+    # CAESAR is a co-evolutionary simulation agent, not a static classifier.
+    # Its metrics come from the co-evolutionary environment, not from
+    # held-out labeled predictions — they measure different things than
+    # RF/DT classifier metrics and should not be compared column-for-column.
+    'neutralization_rate': float(eval_r.get('neutralization_rate', eval_r['avg_det'])),
+    'robustness_score':    float(eval_r.get('robustness_score', 1 - eval_r['avg_fpr'])),
+    'coevo_gap':           float(eval_r.get('coevo_gap', eval_r['avg_det'] - eval_r['avg_as'])),
+    # Legacy simulation-derived proxies kept for backward compatibility only:
+    'f1':             float(1 - eval_r['avg_as'] * 0.5),   # simulation proxy, NOT real F1
     'detection_rate': float(eval_r['avg_det']),
     'false_pos_rate': float(eval_r['avg_fpr']),
-    'roc_auc':        float(0.5 + (eval_r['avg_det'] - eval_r['avg_fpr']) / 2),
-    'accuracy':       float(1 - eval_r['avg_as']),
+    'roc_auc':        float(0.5 + (eval_r['avg_det'] - eval_r['avg_fpr']) / 2),  # simulation proxy
+    'accuracy':       float(1 - eval_r['avg_as']),  # simulation proxy
 }
 print(f"    {cae['model']:<35} F1={cae['f1']:.3f}  DR={cae['detection_rate']:.3f}  FPR={cae['false_pos_rate']:.3f}")
 
