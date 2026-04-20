@@ -1,6 +1,11 @@
 # CAESAR Framework — Complete PhD Research Package
 ## Co-Evolutionary Adversarial Simulation Engine for Attack & Response
 
+**Author:** George David Tsitlauri  
+**Affiliation:** Dept. of Informatics & Telecommunications, University of Thessaly, Greece  
+**Contact:** gdtsitlauri@gmail.com  
+**Year:** 2026
+
 ---
 
 ## 📁 Complete File Structure
@@ -175,3 +180,15 @@ python main.py --data data/cicids2017.csv --episodes 500
 ---
 
 *CAESAR Framework — PhD Research Package · Version 1.0*
+
+## Citation
+
+```bibtex
+@misc{tsitlauri2026caesar,
+  author = {George David Tsitlauri},
+  title  = {CAESAR: Co-Evolutionary Adversarial Simulation Engine for Attack \& Response},
+  year   = {2026},
+  institution = {University of Thessaly},
+  email  = {gdtsitlauri@gmail.com}
+}
+```
