@@ -1,12 +1,67 @@
 # CAESAR Framework — Complete PhD Research Package
+
+## Project Metadata
+
+| Field | Value |
+| --- | --- |
+| Author | George David Tsitlauri |
+| Affiliation | Dept. of Informatics & Telecommunications, University of Thessaly, Greece |
+| Contact | gdtsitlauri@gmail.com |
+| Year | 2026 |
+
 ## Co-Evolutionary Adversarial Simulation Engine for Attack & Response
 
-**Author:** George David Tsitlauri  
-**Affiliation:** Dept. of Informatics & Telecommunications, University of Thessaly, Greece  
-**Contact:** gdtsitlauri@gmail.com  
-**Year:** 2026
 
----
+## Evidence Boundary and Research Positioning
+
+CAESAR should be read as a **two-layer cybersecurity research repository**:
+
+1. **Static IDS evaluation on real CICIDS2017-style labeled data**
+2. **Adaptive co-evolutionary attacker/defender simulation**
+
+These two evidence families are both real within the repository, but they are
+**not the same metric space** and should not be merged into a single
+"state-of-the-art IDS" claim.
+
+- The strongest static baselines in `results/phase2_report.json` are classical
+  supervised IDS models on held-out labeled traffic.
+- CAESAR's distinctive value is the adaptive simulation layer documented in
+  `results/statistical_report.json`, where robustness, neutralization, and
+  co-evolution gap are measured under adversarial pressure.
+- The repository therefore supports a strong **adaptive-security research**
+  story, not a blanket claim that the adaptive agent is the best conventional
+  static IDS classifier on standard benchmark metrics.
+
+## Result Snapshot
+
+### Static IDS metrics on real labeled traffic
+
+Source: `results/phase2_report.json`
+
+- Random Forest IDS: `F1 = 0.9955`, `ROC-AUC = 0.9999`
+- Decision Tree IDS: `F1 = 0.9934`, `ROC-AUC = 0.9987`
+- CAESAR Adaptive IDS: `F1 = 0.9765`, `ROC-AUC = 0.6355`
+
+Interpretation:
+
+- CAESAR is **not** the strongest static classifier in the repository.
+- Its adaptive IDS component trades static benchmark optimality for behavior
+  inside a larger attacker/defender loop.
+
+### Co-evolutionary simulation metrics
+
+Source: `results/statistical_report.json`
+
+- Neutralization rate: `0.9191 ± 0.0205`
+- Robustness score: `0.9670 ± 0.0045`
+- Co-evolution gap: `0.2389 ± 0.0125`
+- Wilcoxon tests are provided for the simulation statistics in the same report.
+
+Interpretation:
+
+- This is the clearest flagship evidence in CAESAR.
+- The repository is strongest when presented as an **adaptive cyber-defense
+  experimentation platform** rather than as a pure benchmark-IDS paper.
 
 ## 📁 Complete File Structure
 
@@ -80,8 +135,6 @@ caesar-framework/
 └── requirements.txt
 ```
 
----
-
 ## 🆕 Novel Contributions (6 total)
 
 | # | Name | Type | Location |
@@ -92,8 +145,6 @@ caesar-framework/
 | 4 | **CAESAR Loop** | Co-evolutionary fitness function | `caesar/caesar_algorithm.py` |
 | 5 | **MGAE** | Manifold-Guided Adversarial Engine (Diffusion) | `caesar/diffusion_module.py` |
 | 6 | **ARL** | Autonomous Remediation Loop (Self-healing) | `caesar/self_healing.py` |
-
----
 
 ## 🚀 Running Everything
 
@@ -125,8 +176,6 @@ kaggle datasets download -d cicdataset/cicids2017 -p data/
 python main.py --data data/cicids2017.csv --episodes 500
 ```
 
----
-
 ## 📊 Full Results Summary
 
 | Phase | Metric | Value |
@@ -147,8 +196,6 @@ python main.py --data data/cicids2017.csv --episodes 500
 | 3 | Mean network health (ARL) | **76.4%** |
 | 3 | Human escalations | **0** |
 
----
-
 ## 📚 Target Publications
 
 | Venue | Tier | Deadline |
@@ -159,8 +206,6 @@ python main.py --data data/cicids2017.csv --episodes 500
 | CCS | A* | Jan |
 | IEEE TIFS (journal) | Q1 | Rolling |
 | Computers & Security | Q1 | Rolling |
-
----
 
 ## 📝 PhD Timeline
 
@@ -177,18 +222,6 @@ python main.py --data data/cicids2017.csv --episodes 500
 | Y3-Q1 | Revision | Thesis revisions, viva prep |
 | Y3-Q2 | Submission | Final submission + viva |
 
----
-
 *CAESAR Framework — PhD Research Package · Version 1.0*
 
-## Citation
 
-```bibtex
-@misc{tsitlauri2026caesar,
-  author = {George David Tsitlauri},
-  title  = {CAESAR: Co-Evolutionary Adversarial Simulation Engine for Attack \& Response},
-  year   = {2026},
-  institution = {University of Thessaly},
-  email  = {gdtsitlauri@gmail.com}
-}
-```
